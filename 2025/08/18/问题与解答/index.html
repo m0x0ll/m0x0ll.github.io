@@ -1,0 +1,352 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>JWT 与 Spring Security 问题与解答 | Moxoll</title><meta name="author" content="Moxoll"><meta name="copyright" content="Moxoll"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="JWT 与 Spring Security 问题与解答一、基础概念与核心区别1. 什么是 JWT？它的作用是什么？ 定义：JWT（JSON Web Token）是一种轻量级的令牌格式，以 JSON 为载体，用于在客户端与服务器之间安全传递身份信息。  核心作用：  存储用户身份数据（如userId、username、过期时间等）。  通过签名机制（如 HS256）防止令牌被篡改，确保信息真实性。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="JWT 与 Spring Security 问题与解答">
+<meta property="og:url" content="https://m0x0ll.github.io/2025/08/18/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E7%AD%94/index.html">
+<meta property="og:site_name" content="Moxoll">
+<meta property="og:description" content="JWT 与 Spring Security 问题与解答一、基础概念与核心区别1. 什么是 JWT？它的作用是什么？ 定义：JWT（JSON Web Token）是一种轻量级的令牌格式，以 JSON 为载体，用于在客户端与服务器之间安全传递身份信息。  核心作用：  存储用户身份数据（如userId、username、过期时间等）。  通过签名机制（如 HS256）防止令牌被篡改，确保信息真实性。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://c.53326.com/d/file/pcbigpic/20200519/nwsy2pglumd.jpg">
+<meta property="article:published_time" content="2025-08-18T02:14:37.000Z">
+<meta property="article:modified_time" content="2025-08-18T02:15:25.746Z">
+<meta property="article:author" content="Moxoll">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://c.53326.com/d/file/pcbigpic/20200519/nwsy2pglumd.jpg"><script type="application/ld+json"></script><link rel="shortcut icon" href="https://th.bing.com/th/id/OIP.aDEtIJ0ihBd0HMBZzG2AxwHaHa?w=181&h=181&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3"><link rel="canonical" href="https://m0x0ll.github.io/2025/08/18/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E7%AD%94/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JWT 与 Spring Security 问题与解答',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'jwt'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(https://static-cse.canva.cn/blob/313412/2.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://th.bing.com/th/id/OIP.aDEtIJ0ihBd0HMBZzG2AxwHaHa?w=181&amp;h=181&amp;c=7&amp;r=0&amp;o=7&amp;dpr=1.5&amp;pid=1.7&amp;rm=3" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 档案</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="not-home-page" id="page-header" style="background-image: url(https://static-cse.canva.cn/blob/313412/2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://th.bing.com/th/id/OIP.aDEtIJ0ihBd0HMBZzG2AxwHaHa?w=181&amp;h=181&amp;c=7&amp;r=0&amp;o=7&amp;dpr=1.5&amp;pid=1.7&amp;rm=3" alt="Logo"><span class="site-name">Moxoll</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 目录</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 档案</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友情链接</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="page-site-info"><h1 id="site-title">JWT 与 Spring Security 问题与解答</h1></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="JWT-与-Spring-Security-问题与解答"><a href="#JWT-与-Spring-Security-问题与解答" class="headerlink" title="JWT 与 Spring Security 问题与解答"></a>JWT 与 Spring Security 问题与解答</h1><h2 id="一、基础概念与核心区别"><a href="#一、基础概念与核心区别" class="headerlink" title="一、基础概念与核心区别"></a>一、基础概念与核心区别</h2><h3 id="1-什么是-JWT？它的作用是什么？"><a href="#1-什么是-JWT？它的作用是什么？" class="headerlink" title="1. 什么是 JWT？它的作用是什么？"></a>1. 什么是 JWT？它的作用是什么？</h3><ul>
+<li><p><strong>定义</strong>：JWT（JSON Web Token）是一种轻量级的令牌格式，以 JSON 为载体，用于在客户端与服务器之间安全传递身份信息。</p>
+</li>
+<li><p><strong>核心作用</strong>：</p>
+</li>
+<li><p>存储用户身份数据（如userId、username、过期时间等）。</p>
+</li>
+<li><p>通过签名机制（如 HS256）防止令牌被篡改，确保信息真实性。</p>
+</li>
+<li><p><strong>代码体现</strong>：在项目中由OkzTokenService（前台）和TokenService（后台）负责生成、解析，例如getFrontLoginUser(request)方法从请求头中提取并解析 JWT。</p>
+</li>
+</ul>
+<h3 id="2-什么是-Spring-Security？它的核心功能是什么？"><a href="#2-什么是-Spring-Security？它的核心功能是什么？" class="headerlink" title="2. 什么是 Spring Security？它的核心功能是什么？"></a>2. 什么是 Spring Security？它的核心功能是什么？</h3><ul>
+<li><p><strong>定义</strong>：Spring Security 是基于 Spring 的安全框架，专注于身份认证（“你是谁”）和授权（“你能做什么”）。</p>
+</li>
+<li><p><strong>核心功能</strong>：</p>
+</li>
+<li><p>身份认证：验证用户是否合法（如登录校验）。</p>
+</li>
+<li><p>授权管理：控制用户对接口 &#x2F; 资源的访问权限（如 “未登录用户不能访问订单详情”）。</p>
+</li>
+<li><p>会话管理：处理用户登录状态（如基于 Token 的无状态会话）。</p>
+</li>
+<li><p><strong>代码体现</strong>：通过FrontSecurityConfig（前台）和SecurityConfig（后台）配置规则，例如antMatchers(“&#x2F;onon&#x2F;**”).permitAll()定义路径访问权限。</p>
+</li>
+</ul>
+<h3 id="3-JWT-和-Spring-Security-的区别是什么？"><a href="#3-JWT-和-Spring-Security-的区别是什么？" class="headerlink" title="3. JWT 和 Spring Security 的区别是什么？"></a>3. JWT 和 Spring Security 的区别是什么？</h3><table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>JWT</strong></th>
+<th><strong>Spring Security</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>本质</strong></td>
+<td>令牌格式（数据载体）</td>
+<td>安全框架（逻辑处理器）</td>
+</tr>
+<tr>
+<td><strong>核心职责</strong></td>
+<td>安全传递身份信息（防篡改）</td>
+<td>验证身份 + 控制权限 + 管理会话</td>
+</tr>
+<tr>
+<td><strong>协作关系</strong></td>
+<td>作为 “身份凭证” 被 Spring Security 使用</td>
+<td>依赖 JWT 解析结果执行后续安全逻辑</td>
+</tr>
+</tbody></table>
+<h2 id="二、过滤器（Filter）的作用与执行逻辑"><a href="#二、过滤器（Filter）的作用与执行逻辑" class="headerlink" title="二、过滤器（Filter）的作用与执行逻辑"></a>二、过滤器（Filter）的作用与执行逻辑</h2><h3 id="1-为什么需要FrontJwtAuthenticationTokenFilter和JwtAuthenticationTokenFilter？"><a href="#1-为什么需要FrontJwtAuthenticationTokenFilter和JwtAuthenticationTokenFilter？" class="headerlink" title="1. 为什么需要FrontJwtAuthenticationTokenFilter和JwtAuthenticationTokenFilter？"></a>1. 为什么需要FrontJwtAuthenticationTokenFilter和JwtAuthenticationTokenFilter？</h3><ul>
+<li><p><strong>核心作用</strong>：二者均为 “JWT 与 Spring Security 的桥梁”，负责将 JWT 令牌转换为 Spring Security 可识别的认证信息。</p>
+</li>
+<li><p><strong>具体逻辑</strong>：</p>
+</li>
+</ul>
+<ol>
+<li><p>从请求中提取 JWT 令牌（如Authorization头中的Bearer token）。</p>
+</li>
+<li><p>解析令牌获取用户信息（如FrontLoginUser或LoginUser）。</p>
+</li>
+<li><p>将用户信息封装为UsernamePasswordAuthenticationToken（Spring Security 标准认证对象）。</p>
+</li>
+<li><p>存入SecurityContextHolder（上下文容器），供后续权限校验使用。</p>
+</li>
+</ol>
+<ul>
+<li><strong>代码示例</strong>（前台过滤器核心逻辑）：</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 解析JWT获取用户信息</span></span><br><span class="line"><span class="type">FrontLoginUser</span> <span class="variable">loginUser</span> <span class="operator">=</span> okzTokenService.getFrontLoginUser(request);</span><br><span class="line"><span class="comment">// 封装为认证对象</span></span><br><span class="line"><span class="type">UsernamePasswordAuthenticationToken</span> <span class="variable">authToken</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UsernamePasswordAuthenticationToken</span>(loginUser, <span class="literal">null</span>, loginUser.getAuthorities());</span><br><span class="line"><span class="comment">// 存入上下文</span></span><br><span class="line">SecurityContextHolder.getContext().setAuthentication(authToken);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-前台过滤器和后台过滤器的执行顺序是怎样的？"><a href="#2-前台过滤器和后台过滤器的执行顺序是怎样的？" class="headerlink" title="2. 前台过滤器和后台过滤器的执行顺序是怎样的？"></a>2. 前台过滤器和后台过滤器的执行顺序是怎样的？</h3><ul>
+<li><p><strong>优先级由</strong><strong>@Order****决定</strong>：</p>
+</li>
+<li><p>前台配置FrontSecurityConfig标注@Order(1)（优先级高）。</p>
+</li>
+<li><p>后台配置SecurityConfig标注@Order(2)（优先级低）。</p>
+</li>
+<li><p><strong>执行流程</strong>（以&#x2F;onon&#x2F;order&#x2F;detail请求为例）：</p>
+</li>
+</ul>
+<ol>
+<li><p>先进入前台过滤器：FrontJwtAuthenticationTokenFilter解析前台 JWT，设置认证信息。</p>
+</li>
+<li><p>再进入后台过滤器：JwtAuthenticationTokenFilter（因无antMatcher限制，默认处理所有请求）。</p>
+</li>
+</ol>
+<h3 id="3-为什么前台请求（-onon-）会触发后台过滤器？"><a href="#3-为什么前台请求（-onon-）会触发后台过滤器？" class="headerlink" title="3. 为什么前台请求（&#x2F;onon&#x2F;**）会触发后台过滤器？"></a>3. 为什么前台请求（&#x2F;onon&#x2F;**）会触发后台过滤器？</h3><ul>
+<li><p><strong>原因</strong>：permitAll()仅表示 “允许匿名访问该路径”，但不会阻止过滤器执行。后台过滤器通过addFilterBefore加入全局过滤器链，默认对所有请求生效。</p>
+</li>
+<li><p><strong>解决方案</strong>：在后台过滤器中手动跳过前台路径：</p>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">doFilterInternal</span><span class="params">(HttpServletRequest request, HttpServletResponse response, FilterChain chain)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">requestUri</span> <span class="operator">=</span> request.getRequestURI();</span><br><span class="line">    <span class="keyword">if</span> (requestUri.startsWith(<span class="string">&quot;/onon/&quot;</span>)) &#123; <span class="comment">// 前台路径直接放行</span></span><br><span class="line">        chain.doFilter(request, response);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 后台过滤器逻辑...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、配置类（SecurityConfig）的逻辑与优先级"><a href="#三、配置类（SecurityConfig）的逻辑与优先级" class="headerlink" title="三、配置类（SecurityConfig）的逻辑与优先级"></a>三、配置类（SecurityConfig）的逻辑与优先级</h2><h3 id="1-FrontSecurityConfig和SecurityConfig的作用分别是什么？"><a href="#1-FrontSecurityConfig和SecurityConfig的作用分别是什么？" class="headerlink" title="1. FrontSecurityConfig和SecurityConfig的作用分别是什么？"></a>1. FrontSecurityConfig和SecurityConfig的作用分别是什么？</h3><ul>
+<li><p><strong>前台配置（<strong><strong>FrontSecurityConfig</strong></strong>）</strong>：</p>
+</li>
+<li><p>仅处理&#x2F;onon&#x2F;<strong>路径（通过antMatcher(“&#x2F;onon&#x2F;</strong>“)限制）。</p>
+</li>
+<li><p>定义前台接口权限规则（如&#x2F;onon&#x2F;user&#x2F;login允许匿名访问，其他需认证）。</p>
+</li>
+<li><p>配置前台过滤器FrontJwtAuthenticationTokenFilter。</p>
+</li>
+<li><p><strong>后台配置（<strong><strong>SecurityConfig</strong></strong>）</strong>：</p>
+</li>
+<li><p>处理所有路径（无antMatcher限制）。</p>
+</li>
+<li><p>定义后台接口权限规则（如&#x2F;admin&#x2F;**需要认证）。</p>
+</li>
+<li><p>配置后台过滤器JwtAuthenticationTokenFilter。</p>
+</li>
+</ul>
+<h3 id="2-permitAll-的作用是什么？它会阻止过滤器执行吗？"><a href="#2-permitAll-的作用是什么？它会阻止过滤器执行吗？" class="headerlink" title="2. permitAll()的作用是什么？它会阻止过滤器执行吗？"></a>2. permitAll()的作用是什么？它会阻止过滤器执行吗？</h3><ul>
+<li><p><strong>作用</strong>：permitAll()表示 “允许匿名访问该路径”，即无需认证即可通过权限校验。</p>
+</li>
+<li><p><strong>注意</strong>：permitAll()<strong>不会阻止过滤器执行</strong>，过滤器仍会解析请求（如打印日志），但后续权限校验会直接放行。</p>
+</li>
+<li><p><strong>示例</strong>：antMatchers(“&#x2F;onon&#x2F;**”).permitAll()表示前台路径无需后台认证，但后台过滤器仍可能被触发（需手动跳过）。</p>
+</li>
+</ul>
+<h3 id="3-为什么FrontSecurityConfig会优先处理-onon-请求？"><a href="#3-为什么FrontSecurityConfig会优先处理-onon-请求？" class="headerlink" title="3. 为什么FrontSecurityConfig会优先处理&#x2F;onon&#x2F;**请求？"></a>3. 为什么FrontSecurityConfig会优先处理&#x2F;onon&#x2F;**请求？</h3><ul>
+<li><p>*<em>原因 1：</em>***@Order(1)**<strong>优先级更高</strong>：Spring Security 会先加载优先级高的配置。</p>
+</li>
+<li><p>**原因 2：***<em>antMatcher(“&#x2F;onon&#x2F;*</em>“)**<strong>精准匹配</strong>：前台配置明确指定只处理&#x2F;onon&#x2F;**路径，后台配置因优先级低且无路径限制，会 “让渡” 给前台配置先处理。</p>
+</li>
+<li><p><strong>效果</strong>：&#x2F;onon&#x2F;**请求先经过前台过滤器和权限校验，再进入后台配置流程。</p>
+</li>
+</ul>
+<h2 id="四、整体请求流程总结（以-onon-order-detail为例）"><a href="#四、整体请求流程总结（以-onon-order-detail为例）" class="headerlink" title="四、整体请求流程总结（以&#x2F;onon&#x2F;order&#x2F;detail为例）"></a>四、整体请求流程总结（以&#x2F;onon&#x2F;order&#x2F;detail为例）</h2><ol>
+<li><p><strong>请求到达</strong>：客户端发起&#x2F;onon&#x2F;order&#x2F;detail请求，携带前台 JWT 令牌。</p>
+</li>
+<li><p><strong>前台配置处理</strong>：</p>
+</li>
+</ol>
+<ul>
+<li><p>因@Order(1)和antMatcher(“&#x2F;onon&#x2F;**”)，优先进入FrontSecurityConfig。</p>
+</li>
+<li><p>执行FrontJwtAuthenticationTokenFilter：解析 JWT，设置FrontLoginUser到SecurityContextHolder。</p>
+</li>
+<li><p>权限校验：anyRequest().authenticated()（因已设置认证信息，通过）。</p>
+</li>
+</ul>
+<ol>
+<li><strong>后台配置处理</strong>：</li>
+</ol>
+<ul>
+<li><p>进入SecurityConfig（优先级低），执行JwtAuthenticationTokenFilter。</p>
+</li>
+<li><p>若后台过滤器未跳过前台路径，会打印日志但因loginUser为null（无后台 JWT），不设置认证信息。</p>
+</li>
+<li><p>权限校验：antMatchers(“&#x2F;onon&#x2F;**”).permitAll()（直接放行）。</p>
+</li>
+</ul>
+<ol>
+<li><strong>接口执行</strong>：请求到达&#x2F;onon&#x2F;order&#x2F;detail接口，执行业务逻辑。</li>
+</ol>
+<h2 id="五、关键类比与协作关系"><a href="#五、关键类比与协作关系" class="headerlink" title="五、关键类比与协作关系"></a>五、关键类比与协作关系</h2><table>
+<thead>
+<tr>
+<th>组件 &#x2F; 概念</th>
+<th>类比场景</th>
+<th>作用描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JWT</td>
+<td>登机牌</td>
+<td>存储用户身份信息（如userId），通过签名防止伪造。</td>
+</tr>
+<tr>
+<td>前台 &#x2F; 后台过滤器</td>
+<td>登机牌检查员</td>
+<td>解析 JWT（核对登机牌），将用户信息转换为 Spring Security 可识别的 “已验证标签”。</td>
+</tr>
+<tr>
+<td>Spring Security 配置类</td>
+<td>安检规则与入口</td>
+<td>规定 “哪些接口需要验证”（如登机口必须查登机牌），并检查 “已验证标签”。</td>
+</tr>
+<tr>
+<td>@Order与antMatcher</td>
+<td>门禁优先级</td>
+<td>确保前台路径由前台配置优先处理，后台路径由后台配置处理，分工明确。</td>
+</tr>
+</tbody></table>
+<p>通过以上整理，可清晰理解 JWT、过滤器、Spring Security 的核心逻辑、协作关系及配置优先级对请求流程的影响。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://m0x0ll.github.io">Moxoll</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://m0x0ll.github.io/2025/08/18/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E7%AD%94/">https://m0x0ll.github.io/2025/08/18/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E7%AD%94/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://m0x0ll.github.io" target="_blank">Moxoll</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://c.53326.com/d/file/pcbigpic/20200519/nwsy2pglumd.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav id="pagination"><div class="pagination"></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="https://th.bing.com/th/id/OIP.aDEtIJ0ihBd0HMBZzG2AxwHaHa?w=181&amp;h=181&amp;c=7&amp;r=0&amp;o=7&amp;dpr=1.5&amp;pid=1.7&amp;rm=3" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Moxoll</div><div class="author-info-description">欢迎来到我的博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/m0x0ll" target="_blank" title="Github"><i class="fab fa-github" style="color: #hdhfbb;"></i></a><a class="social-icon" href="mailto:18747900186@163.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #000000;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/08/18/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E7%AD%94/" title="JWT 与 Spring Security 问题与解答"><img src="https://c.53326.com/d/file/pcbigpic/20200519/nwsy2pglumd.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="JWT 与 Spring Security 问题与解答"/></a><div class="content"><a class="title" href="/2025/08/18/%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E7%AD%94/" title="JWT 与 Spring Security 问题与解答">JWT 与 Spring Security 问题与解答</a><time datetime="2025-08-18T02:14:37.000Z" title="发表于 2025-08-18 10:14:37">2025-08-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/15/SpringSecurity/" title="【学习】SpringBoot AOP切面编程：从概念到实战"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmQ1wHJANsU1T2LsIvQperIbl1OOOCdETPdg&amp;s" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="【学习】SpringBoot AOP切面编程：从概念到实战"/></a><div class="content"><a class="title" href="/2025/08/15/SpringSecurity/" title="【学习】SpringBoot AOP切面编程：从概念到实战">【学习】SpringBoot AOP切面编程：从概念到实战</a><time datetime="2025-08-15T12:55:27.000Z" title="发表于 2025-08-15 20:55:27">2025-08-15</time></div></div></div></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/08/">
+            <span class="card-archive-list-date">
+              八月 2025
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">2</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2025-08-18T02:15:54.822Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(https://static-cse.canva.cn/blob/313412/2.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 By Moxoll</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
